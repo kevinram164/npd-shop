@@ -1,0 +1,158 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: noli
+      POSTGRES_PASSWORD: noli
+      POSTGRES_DB: noli
+    ports:
+      - "5433:5432"
+    volumes:
+      - noli-pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U noli -d noli"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redpanda:
+    image: redpandadata/redpanda:v24.2.4
+    command:
+      - redpanda
+      - start
+      - --overprovisioned
+      - --smp
+      - "1"
+      - --memory
+      - 512M
+      - --reserve-memory
+      - 0M
+      - --node-id
+      - "0"
+      - --check=false
+      - --kafka-addr
+      - internal://0.0.0.0:9092,external://0.0.0.0:19092
+      - --advertise-kafka-addr
+      - internal://redpanda:9092,external://localhost:19092
+    ports:
+      - "19092:19092"
+
+  auth-service:
+    build:
+      context: ./services
+      dockerfile: Dockerfile
+      args:
+        SERVICE_DIR: auth-service
+        PORT: "8001"
+    environment: &svc-env
+      DATABASE_URL: postgresql+psycopg2://noli:noli@postgres:5432/noli
+      JWT_SECRET: noli-dev-secret-change-me
+      INTERNAL_TOKEN: noli-internal-dev
+      CORS_ORIGINS: "*"
+      SEED_ON_STARTUP: "true"
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
+      OTEL_SERVICE_NAMESPACE: npd-shop
+      DEPLOY_ENV: local
+      OTEL_HEARTBEAT: "1"
+      OTEL_HEARTBEAT_SECONDS: "30"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8001:8001"
+
+  catalog-service:
+    build:
+      context: ./services
+      dockerfile: Dockerfile
+      args:
+        SERVICE_DIR: catalog-service
+        PORT: "8002"
+    environment:
+      <<: *svc-env
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8002:8002"
+
+  order-service:
+    build:
+      context: ./services
+      dockerfile: Dockerfile
+      args:
+        SERVICE_DIR: order-service
+        PORT: "8003"
+    environment:
+      <<: *svc-env
+      CATALOG_URL: http://catalog-service:8002
+      PAYMENT_URL: http://payment-worker:8004
+      KAFKA_BOOTSTRAP: redpanda:9092
+      KAFKA_ORDERS_TOPIC: orders.events
+      KAFKA_PAYMENTS_TOPIC: payments.events
+    depends_on:
+      postgres:
+        condition: service_healthy
+      catalog-service:
+        condition: service_started
+      redpanda:
+        condition: service_started
+    ports:
+      - "8003:8003"
+
+  payment-worker:
+    build:
+      context: ./services
+      dockerfile: Dockerfile
+      args:
+        SERVICE_DIR: payment-worker
+        PORT: "8004"
+    environment:
+      <<: *svc-env
+      ORDER_URL: http://order-service:8003
+      KAFKA_BOOTSTRAP: redpanda:9092
+      KAFKA_PAYMENTS_TOPIC: payments.events
+    depends_on:
+      - order-service
+      - redpanda
+    ports:
+      - "8004:8004"
+
+  gateway:
+    build:
+      context: ./services
+      dockerfile: Dockerfile
+      args:
+        SERVICE_DIR: gateway
+        PORT: "8080"
+    environment:
+      <<: *svc-env
+      AUTH_URL: http://auth-service:8001
+      CATALOG_URL: http://catalog-service:8002
+      ORDER_URL: http://order-service:8003
+      PAYMENT_URL: http://payment-worker:8004
+    depends_on:
+      - auth-service
+      - catalog-service
+      - order-service
+      - payment-worker
+    ports:
+      - "8080:8080"
+
+  web:
+    image: node:20-alpine
+    working_dir: /app
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0 --port 5173"
+    ports:
+      - "5173:5173"
+    environment:
+      VITE_API_BASE: http://localhost:8080
+    volumes:
+      - ./frontend:/app
+      - noli-node-modules:/app/node_modules
+    depends_on:
+      - gateway
+
+volumes:
+  noli-pg:
+  noli-node-modules:
