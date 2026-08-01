@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 
 from common.config import settings
 from common.database import Base, SessionLocal, engine, get_db
+from common.db_bootstrap import init_db_in_background
 from common.models import Product
 from common.observability import instrument_fastapi
 from common.product_images import urls_for_sku
@@ -34,17 +35,23 @@ def _product_out(product: Product) -> ProductOut:
     )
 
 
+def _seed_catalog() -> None:
+    db = SessionLocal()
+    try:
+        n = seed_products(db)
+        if n:
+            print(f"[{SERVICE}] seeded {n} products", flush=True)
+    finally:
+        db.close()
+
+
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    Base.metadata.create_all(bind=engine)
-    if settings.seed_on_startup:
-        db = SessionLocal()
-        try:
-            n = seed_products(db)
-            if n:
-                print(f"[{SERVICE}] seeded {n} products")
-        finally:
-            db.close()
+    init_db_in_background(
+        label=SERVICE,
+        create_schema=lambda: Base.metadata.create_all(bind=engine),
+        seed=_seed_catalog if settings.seed_on_startup else None,
+    )
     yield
 
 

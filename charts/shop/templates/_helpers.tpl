@@ -22,3 +22,24 @@ app.kubernetes.io/part-of: npd-shop
       key: INTERNAL_TOKEN
 {{- end }}
 {{- end }}
+
+{{- define "shop.httpProbes" -}}
+startupProbe:
+  httpGet:
+    path: {{ .path }}
+    port: http
+  failureThreshold: 30
+  periodSeconds: 5
+readinessProbe:
+  httpGet:
+    path: {{ .path }}
+    port: http
+  periodSeconds: 10
+  failureThreshold: 3
+livenessProbe:
+  httpGet:
+    path: {{ .path }}
+    port: http
+  periodSeconds: 20
+  failureThreshold: 3
+{{- end }}

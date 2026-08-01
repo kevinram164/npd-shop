@@ -13,6 +13,7 @@ from sqlalchemy.orm import Session, selectinload
 
 from common.config import settings
 from common.database import Base, engine, get_db
+from common.db_bootstrap import init_db_in_background
 from common.kafka_bus import publish_json
 from common.models import Order, OrderItem, OrderStatus, User
 from common.observability import instrument_fastapi
@@ -67,7 +68,10 @@ def _gen_code(prefix: str, length: int = 6) -> str:
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    Base.metadata.create_all(bind=engine)
+    init_db_in_background(
+        label=SERVICE,
+        create_schema=lambda: Base.metadata.create_all(bind=engine),
+    )
     yield
 
 

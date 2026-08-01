@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 
 from common.config import settings
 from common.database import Base, SessionLocal, engine, get_db
+from common.db_bootstrap import init_db_in_background
 from common.models import User
 from common.observability import instrument_fastapi
 from common.schemas import LoginIn, RegisterIn, TokenOut, UserOut
@@ -36,16 +37,18 @@ def seed_admin() -> None:
             )
         )
         db.commit()
-        print(f"[{SERVICE}] seeded admin {email}")
+        print(f"[{SERVICE}] seeded admin {email}", flush=True)
     finally:
         db.close()
 
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    Base.metadata.create_all(bind=engine)
-    if settings.seed_on_startup:
-        seed_admin()
+    init_db_in_background(
+        label=SERVICE,
+        create_schema=lambda: Base.metadata.create_all(bind=engine),
+        seed=seed_admin if settings.seed_on_startup else None,
+    )
     yield
 
 

@@ -35,14 +35,7 @@ spec:
               value: {{ $v | quote }}
             {{- end }}
             {{- include "shop.secretEnv" . | nindent 12 }}
-          readinessProbe:
-            httpGet: { path: /health, port: http }
-            initialDelaySeconds: 5
-            periodSeconds: 10
-          livenessProbe:
-            httpGet: { path: /health, port: http }
-            initialDelaySeconds: 15
-            periodSeconds: 20
+          {{- include "shop.httpProbes" (dict "path" "/health") | nindent 10 }}
           resources:
             {{- toYaml .Values.gateway.resources | nindent 12 }}
           securityContext:
