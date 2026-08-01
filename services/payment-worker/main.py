@@ -52,6 +52,8 @@ def _kafka_loop(stop: threading.Event) -> None:
         group_id="noli-payment-worker",
         value_deserializer=lambda b: json.loads(b.decode("utf-8")),
         auto_offset_reset="earliest",
+        enable_auto_commit=False,
+        max_poll_records=50,
     )
     log.info("Kafka consumer started topic=%s", settings.kafka_payments_topic)
     while not stop.is_set():
@@ -61,6 +63,7 @@ def _kafka_loop(stop: threading.Event) -> None:
                 data = msg.value or {}
                 # Expect banking-shaped events: payment.completed
                 if data.get("event") not in ("payment.completed", "payment.confirm"):
+                    consumer.commit()
                     continue
                 with consumer_span(
                     tracer,
@@ -75,8 +78,10 @@ def _kafka_loop(stop: threading.Event) -> None:
                                 force_status=data.get("force_status"),
                             )
                         )
+                        consumer.commit()
                     except Exception as exc:
                         log.exception("apply payment failed: %s", exc)
+                        # Không commit → message được retry (at-least-once)
     consumer.close()
 
 

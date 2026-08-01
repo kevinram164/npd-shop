@@ -1,0 +1,14 @@
+# Enable when Strimzi npd-kafka is Ready (see banking-demo phase9 .../kafka/README.md)
+# Bootstrap plain (lab). Prod: :9093 + SCRAM.
+
+orderService:
+  env:
+    KAFKA_BOOTSTRAP: "npd-kafka-kafka-bootstrap.kafka.svc.cluster.local:9092"
+    KAFKA_ORDERS_TOPIC: "orders.events"
+    KAFKA_PAYMENTS_TOPIC: "payments.events"
+
+paymentWorker:
+  env:
+    KAFKA_BOOTSTRAP: "npd-kafka-kafka-bootstrap.kafka.svc.cluster.local:9092"
+    KAFKA_ORDERS_TOPIC: "orders.events"
+    KAFKA_PAYMENTS_TOPIC: "payments.events"
