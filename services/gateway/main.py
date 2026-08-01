@@ -51,8 +51,14 @@ instrument_fastapi(app, SERVICE)
 
 
 @app.get("/health")
+def health():
+    """Liveness for K8s probes — gateway process only (no upstream fan-out)."""
+    return {"status": "ok", "service": SERVICE}
+
+
 @app.get("/api/health")
-async def health():
+async def health_deep():
+    """Deep check — upstreams; may return 503 when dependencies are down."""
     results = {}
     async with httpx.AsyncClient(timeout=3.0) as client:
         for name, url in [

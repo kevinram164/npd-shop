@@ -149,6 +149,23 @@ oc logs job/noli-db-init -n postgres
 
 ---
 
+## Troubleshoot — CrashLoop, connection refused, “không có log”
+
+Banking đã gặp: **Kaniko hay làm gãy symlink `uvicorn`** trong image → process chết ngay (`uvicorn: not found`), ArgoCD Logs gần như trống, Events chỉ thấy probe `connection refused`.
+
+Fix: Dockerfile dùng `venv --copies` + `python -m uvicorn` (đã áp dụng trong `services/*/Dockerfile`).
+
+Lấy log chắc chắn:
+
+```bash
+oc logs -n npd-shop deploy/auth-service --previous --tail=100
+oc debug -n npd-shop deploy/auth-service -- /bin/sh -c 'ls -l /app/venv/bin/uvicorn; /app/venv/bin/python -m uvicorn --version'
+```
+
+Sau khi push Dockerfile mới: Jenkins `BUILD_TARGET=all` (bắt buộc rebuild toàn bộ Python services).
+
+---
+
 ## 5. Rotate
 
 ```bash
