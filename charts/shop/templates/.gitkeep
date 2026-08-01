@@ -1,0 +1,2 @@
+# Placeholder so Helm chart packages cleanly.
+# Secrets are created out-of-band (see DEPLOY.md §C): npd-shop-secrets

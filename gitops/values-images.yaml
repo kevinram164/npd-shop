@@ -1,0 +1,37 @@
+# Image tags — CI (platformPipeline / Kaniko) updates on main.
+# IMPORTANT: always quote tags — bare hex is parsed as float in YAML.
+gateway:
+  image:
+    repository: harbor-platform.apps.ocp01.npd.co/npd-shop/gateway
+    tag: "latest"
+    pullPolicy: Always
+
+authService:
+  image:
+    repository: harbor-platform.apps.ocp01.npd.co/npd-shop/auth-service
+    tag: "latest"
+    pullPolicy: Always
+
+catalogService:
+  image:
+    repository: harbor-platform.apps.ocp01.npd.co/npd-shop/catalog-service
+    tag: "latest"
+    pullPolicy: Always
+
+orderService:
+  image:
+    repository: harbor-platform.apps.ocp01.npd.co/npd-shop/order-service
+    tag: "latest"
+    pullPolicy: Always
+
+paymentWorker:
+  image:
+    repository: harbor-platform.apps.ocp01.npd.co/npd-shop/payment-worker
+    tag: "latest"
+    pullPolicy: Always
+
+shopWeb:
+  image:
+    repository: harbor-platform.apps.ocp01.npd.co/npd-shop/shop-web
+    tag: "latest"
+    pullPolicy: Always

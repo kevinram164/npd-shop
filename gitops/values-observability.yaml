@@ -1,0 +1,47 @@
+# NOLI shop — OpenTelemetry (same path as banking / cinehome)
+# App → opentelemetry-collector.observability → dual Coroot + Instana
+
+gateway:
+  env:
+    OTEL_EXPORTER_OTLP_ENDPOINT: "http://opentelemetry-collector.observability.svc.cluster.local:4317"
+    OTEL_EXPORTER_OTLP_PROTOCOL: "grpc"
+    OTEL_SERVICE_NAME: "noli-shop-gateway"
+    OTEL_RESOURCE_ATTRIBUTES: "deployment.environment=dev-ocp,k8s.namespace.name=npd-shop,k8s.cluster.name=ocp01"
+    OTEL_HEARTBEAT: "1"
+    OTEL_HEARTBEAT_SECONDS: "30"
+
+authService:
+  env:
+    OTEL_EXPORTER_OTLP_ENDPOINT: "http://opentelemetry-collector.observability.svc.cluster.local:4317"
+    OTEL_EXPORTER_OTLP_PROTOCOL: "grpc"
+    OTEL_SERVICE_NAME: "noli-auth-service"
+    OTEL_RESOURCE_ATTRIBUTES: "deployment.environment=dev-ocp,k8s.namespace.name=npd-shop,k8s.cluster.name=ocp01"
+    OTEL_HEARTBEAT: "1"
+    OTEL_HEARTBEAT_SECONDS: "30"
+
+catalogService:
+  env:
+    OTEL_EXPORTER_OTLP_ENDPOINT: "http://opentelemetry-collector.observability.svc.cluster.local:4317"
+    OTEL_EXPORTER_OTLP_PROTOCOL: "grpc"
+    OTEL_SERVICE_NAME: "noli-catalog-service"
+    OTEL_RESOURCE_ATTRIBUTES: "deployment.environment=dev-ocp,k8s.namespace.name=npd-shop,k8s.cluster.name=ocp01"
+    OTEL_HEARTBEAT: "1"
+    OTEL_HEARTBEAT_SECONDS: "30"
+
+orderService:
+  env:
+    OTEL_EXPORTER_OTLP_ENDPOINT: "http://opentelemetry-collector.observability.svc.cluster.local:4317"
+    OTEL_EXPORTER_OTLP_PROTOCOL: "grpc"
+    OTEL_SERVICE_NAME: "noli-order-service"
+    OTEL_RESOURCE_ATTRIBUTES: "deployment.environment=dev-ocp,k8s.namespace.name=npd-shop,k8s.cluster.name=ocp01"
+    OTEL_HEARTBEAT: "1"
+    OTEL_HEARTBEAT_SECONDS: "30"
+
+paymentWorker:
+  env:
+    OTEL_EXPORTER_OTLP_ENDPOINT: "http://opentelemetry-collector.observability.svc.cluster.local:4317"
+    OTEL_EXPORTER_OTLP_PROTOCOL: "grpc"
+    OTEL_SERVICE_NAME: "noli-payment-worker"
+    OTEL_RESOURCE_ATTRIBUTES: "deployment.environment=dev-ocp,k8s.namespace.name=npd-shop,k8s.cluster.name=ocp01"
+    OTEL_HEARTBEAT: "1"
+    OTEL_HEARTBEAT_SECONDS: "30"

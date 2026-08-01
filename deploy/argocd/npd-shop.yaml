@@ -1,0 +1,31 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: npd-shop
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: npd-shop
+    app.kubernetes.io/component: app
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+spec:
+  project: npd-shop-platform
+  source:
+    repoURL: https://github.com/kevinram164/npd-shop.git
+    targetRevision: main
+    path: charts/shop
+    helm:
+      releaseName: npd-shop
+      valueFiles:
+        - values.yaml
+        - ../../gitops/values-images.yaml
+        - ../../gitops/values-observability.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: npd-shop
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      prune: false
+      selfHeal: true

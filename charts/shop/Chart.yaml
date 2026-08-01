@@ -1,0 +1,6 @@
+apiVersion: v2
+name: npd-shop
+description: NOLI marketplace — microservices for OCP
+type: application
+version: 0.1.0
+appVersion: "0.1.0"

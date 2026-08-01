@@ -1,0 +1,68 @@
+{{- if .Values.paymentWorker.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payment-worker
+  labels:
+    {{- include "shop.labels" . | nindent 4 }}
+    app.kubernetes.io/component: payment-worker
+spec:
+  replicas: {{ .Values.paymentWorker.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: npd-shop
+      app.kubernetes.io/component: payment-worker
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: npd-shop
+        app.kubernetes.io/component: payment-worker
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: payment-worker
+          image: "{{ .Values.paymentWorker.image.repository }}:{{ .Values.paymentWorker.image.tag | toString }}"
+          imagePullPolicy: {{ .Values.paymentWorker.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 8004
+          env:
+            {{- range $k, $v := .Values.paymentWorker.env }}
+            - name: {{ $k }}
+              value: {{ $v | quote }}
+            {{- end }}
+            {{- include "shop.secretEnv" . | nindent 12 }}
+          readinessProbe:
+            httpGet: { path: /health, port: http }
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: { path: /health, port: http }
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          resources:
+            {{- toYaml .Values.paymentWorker.resources | nindent 12 }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            capabilities: { drop: ["ALL"] }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: payment-worker
+  labels:
+    {{- include "shop.labels" . | nindent 4 }}
+    app.kubernetes.io/component: payment-worker
+spec:
+  selector:
+    app.kubernetes.io/name: npd-shop
+    app.kubernetes.io/component: payment-worker
+  ports:
+    - name: http
+      port: {{ .Values.paymentWorker.service.port }}
+      targetPort: http
+{{- end }}

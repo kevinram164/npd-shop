@@ -2,7 +2,8 @@
 
 Cửa hàng lifestyle demo — **microservices** (gateway / auth / catalog / order / payment-worker) để Instana/Coroot có dependency graph đẹp.
 
-Xem chi tiết: [ARCHITECTURE.md](ARCHITECTURE.md)
+Xem chi tiết: [ARCHITECTURE.md](ARCHITECTURE.md)  
+**Deploy OCP (domain `npd-shop.co`):** [DEPLOY.md](DEPLOY.md) · **Vault secrets:** [docs/vault-secrets.md](docs/vault-secrets.md)
 
 ## Quick start
 

@@ -1,0 +1,67 @@
+{{- if .Values.shopWeb.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shop-web
+  labels:
+    {{- include "shop.labels" . | nindent 4 }}
+    app.kubernetes.io/component: shop-web
+spec:
+  replicas: {{ .Values.shopWeb.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: npd-shop
+      app.kubernetes.io/component: shop-web
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: npd-shop
+        app.kubernetes.io/component: shop-web
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: shop-web
+          image: "{{ .Values.shopWeb.image.repository }}:{{ .Values.shopWeb.image.tag | toString }}"
+          imagePullPolicy: {{ .Values.shopWeb.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 8080
+          env:
+            {{- range $k, $v := .Values.shopWeb.env }}
+            - name: {{ $k }}
+              value: {{ $v | quote }}
+            {{- end }}
+          readinessProbe:
+            httpGet: { path: /, port: http }
+            initialDelaySeconds: 3
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: { path: /, port: http }
+            initialDelaySeconds: 10
+            periodSeconds: 20
+          resources:
+            {{- toYaml .Values.shopWeb.resources | nindent 12 }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            capabilities: { drop: ["ALL"] }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: shop-web
+  labels:
+    {{- include "shop.labels" . | nindent 4 }}
+    app.kubernetes.io/component: shop-web
+spec:
+  selector:
+    app.kubernetes.io/name: npd-shop
+    app.kubernetes.io/component: shop-web
+  ports:
+    - name: http
+      port: {{ .Values.shopWeb.service.port }}
+      targetPort: http
+{{- end }}

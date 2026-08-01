@@ -1,0 +1,23 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: npd-shop-app-of-apps
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: npd-shop
+spec:
+  project: npd-shop-platform
+  source:
+    repoURL: https://github.com/kevinram164/npd-shop.git
+    targetRevision: main
+    path: deploy/argocd
+    directory:
+      recurse: false
+      exclude: "{app-of-apps.yaml,appproject.yaml}"
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  syncPolicy:
+    automated:
+      prune: false
+      selfHeal: true

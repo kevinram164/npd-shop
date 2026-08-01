@@ -1,0 +1,30 @@
+# AppProject — npd-shop GitOps (dev-ocp)
+# Apply: oc apply -f deploy/argocd/appproject.yaml -n argocd
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: npd-shop-platform
+  namespace: argocd
+  labels:
+    app.kubernetes.io/name: npd-shop-platform
+    app.kubernetes.io/part-of: npd-shop
+    npd-shop/environment: dev-ocp
+spec:
+  description: "NOLI marketplace (npd-shop) — Helm + Routes on OpenShift"
+  sourceRepos:
+    - https://github.com/kevinram164/npd-shop.git
+  destinations:
+    - namespace: npd-shop
+      server: https://kubernetes.default.svc
+    - namespace: postgres
+      server: https://kubernetes.default.svc
+    - namespace: argocd
+      server: https://kubernetes.default.svc
+  clusterResourceWhitelist:
+    - group: ""
+      kind: Namespace
+  namespaceResourceWhitelist:
+    - group: "*"
+      kind: "*"
+  orphanedResources:
+    warn: true

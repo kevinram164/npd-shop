@@ -1,0 +1,117 @@
+namespace: npd-shop
+
+imagePullSecrets:
+  - name: harbor-pull-creds
+
+# Secret keys: DATABASE_URL, JWT_SECRET, INTERNAL_TOKEN (optional ADMIN_PASSWORD)
+appSecretName: npd-shop-secrets
+
+domain: npd-shop.co
+
+gateway:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: harbor-platform.apps.ocp01.npd.co/npd-shop/gateway
+    tag: "latest"
+    pullPolicy: Always
+  service:
+    port: 8080
+  resources:
+    requests: { cpu: 50m, memory: 128Mi }
+    limits: { cpu: 500m, memory: 512Mi }
+  env:
+    CORS_ORIGINS: "https://npd-shop.co,http://npd-shop.co,https://npd-shop.apps.ocp01.npd.co"
+    AUTH_URL: "http://auth-service:8001"
+    CATALOG_URL: "http://catalog-service:8002"
+    ORDER_URL: "http://order-service:8003"
+    PAYMENT_URL: "http://payment-worker:8004"
+    SEED_ON_STARTUP: "false"
+    OTEL_SERVICE_NAME: "noli-shop-gateway"
+
+authService:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: harbor-platform.apps.ocp01.npd.co/npd-shop/auth-service
+    tag: "latest"
+    pullPolicy: Always
+  service:
+    port: 8001
+  resources:
+    requests: { cpu: 50m, memory: 128Mi }
+    limits: { cpu: 500m, memory: 512Mi }
+  env:
+    CORS_ORIGINS: "*"
+    SEED_ON_STARTUP: "true"
+    OTEL_SERVICE_NAME: "noli-auth-service"
+
+catalogService:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: harbor-platform.apps.ocp01.npd.co/npd-shop/catalog-service
+    tag: "latest"
+    pullPolicy: Always
+  service:
+    port: 8002
+  resources:
+    requests: { cpu: 50m, memory: 128Mi }
+    limits: { cpu: 500m, memory: 512Mi }
+  env:
+    CORS_ORIGINS: "*"
+    SEED_ON_STARTUP: "true"
+    OTEL_SERVICE_NAME: "noli-catalog-service"
+
+orderService:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: harbor-platform.apps.ocp01.npd.co/npd-shop/order-service
+    tag: "latest"
+    pullPolicy: Always
+  service:
+    port: 8003
+  resources:
+    requests: { cpu: 50m, memory: 128Mi }
+    limits: { cpu: 500m, memory: 512Mi }
+  env:
+    CORS_ORIGINS: "*"
+    CATALOG_URL: "http://catalog-service:8002"
+    PAYMENT_URL: "http://payment-worker:8004"
+    KAFKA_BOOTSTRAP: ""
+    SEED_ON_STARTUP: "false"
+    OTEL_SERVICE_NAME: "noli-order-service"
+
+paymentWorker:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: harbor-platform.apps.ocp01.npd.co/npd-shop/payment-worker
+    tag: "latest"
+    pullPolicy: Always
+  service:
+    port: 8004
+  resources:
+    requests: { cpu: 50m, memory: 128Mi }
+    limits: { cpu: 500m, memory: 512Mi }
+  env:
+    CORS_ORIGINS: "*"
+    ORDER_URL: "http://order-service:8003"
+    KAFKA_BOOTSTRAP: ""
+    SEED_ON_STARTUP: "false"
+    OTEL_SERVICE_NAME: "noli-payment-worker"
+
+shopWeb:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: harbor-platform.apps.ocp01.npd.co/npd-shop/shop-web
+    tag: "latest"
+    pullPolicy: Always
+  service:
+    port: 8080
+  resources:
+    requests: { cpu: 25m, memory: 64Mi }
+    limits: { cpu: 200m, memory: 256Mi }
+  env: {}

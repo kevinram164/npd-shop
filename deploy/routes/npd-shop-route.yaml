@@ -1,0 +1,52 @@
+# NOLI shop UI + /api (nginx → gateway) — custom domain
+# DNS: npd-shop.co A/CNAME → OpenShift Router (giống npd-banking.co)
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: npd-shop
+  namespace: npd-shop
+  labels:
+    app.kubernetes.io/name: npd-shop
+    app.kubernetes.io/component: shop-web
+    npd-shop/environment: dev-ocp
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+spec:
+  host: npd-shop.co
+  path: /
+  to:
+    kind: Service
+    name: shop-web
+    weight: 100
+  port:
+    targetPort: http
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+  wildcardPolicy: None
+---
+# Fallback nội bộ cluster (không cần DNS custom)
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: npd-shop-apps
+  namespace: npd-shop
+  labels:
+    app.kubernetes.io/name: npd-shop
+    app.kubernetes.io/component: shop-web
+    npd-shop/environment: dev-ocp
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+spec:
+  host: npd-shop.apps.ocp01.npd.co
+  path: /
+  to:
+    kind: Service
+    name: shop-web
+    weight: 100
+  port:
+    targetPort: http
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+  wildcardPolicy: None

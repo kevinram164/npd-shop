@@ -1,0 +1,26 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: npd-shop-routes
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: npd-shop
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+spec:
+  project: npd-shop-platform
+  source:
+    repoURL: https://github.com/kevinram164/npd-shop.git
+    targetRevision: main
+    path: deploy/routes
+    directory:
+      include: npd-shop-route.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: npd-shop
+  syncPolicy:
+    automated:
+      prune: false
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

@@ -1,0 +1,68 @@
+{{- if .Values.catalogService.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: catalog-service
+  labels:
+    {{- include "shop.labels" . | nindent 4 }}
+    app.kubernetes.io/component: catalog-service
+spec:
+  replicas: {{ .Values.catalogService.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: npd-shop
+      app.kubernetes.io/component: catalog-service
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: npd-shop
+        app.kubernetes.io/component: catalog-service
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: catalog-service
+          image: "{{ .Values.catalogService.image.repository }}:{{ .Values.catalogService.image.tag | toString }}"
+          imagePullPolicy: {{ .Values.catalogService.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 8002
+          env:
+            {{- range $k, $v := .Values.catalogService.env }}
+            - name: {{ $k }}
+              value: {{ $v | quote }}
+            {{- end }}
+            {{- include "shop.secretEnv" . | nindent 12 }}
+          readinessProbe:
+            httpGet: { path: /health, port: http }
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: { path: /health, port: http }
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          resources:
+            {{- toYaml .Values.catalogService.resources | nindent 12 }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            capabilities: { drop: ["ALL"] }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: catalog-service
+  labels:
+    {{- include "shop.labels" . | nindent 4 }}
+    app.kubernetes.io/component: catalog-service
+spec:
+  selector:
+    app.kubernetes.io/name: npd-shop
+    app.kubernetes.io/component: catalog-service
+  ports:
+    - name: http
+      port: {{ .Values.catalogService.service.port }}
+      targetPort: http
+{{- end }}
