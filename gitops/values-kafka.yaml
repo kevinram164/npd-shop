@@ -1,5 +1,8 @@
-# Enable when Strimzi npd-kafka is Ready (see banking-demo phase9 .../kafka/README.md)
-# Bootstrap plain (lab). Prod: :9093 + SCRAM.
+# Wire npd-shop → shared Strimzi Kafka (lab plain :9092).
+# Bật qua deploy/argocd/npd-shop.yaml valueFiles.
+#
+# Lab hiện tại: plain listener, không ACL — không cần secret SCRAM.
+# Gần prod (values-prod Kafka): đổi sang :9093 + SCRAM từ secret npd-shop (ns kafka).
 
 orderService:
   env:

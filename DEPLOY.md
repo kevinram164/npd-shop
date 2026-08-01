@@ -160,19 +160,23 @@ Browser: https://npd-shop.co — catalog, checkout (mã `NOLI-xxxxxx`), admin po
 
 ---
 
-## Kafka (tùy chọn, sau)
+## Kafka (shared Strimzi — đã Ready)
 
-`order-service` / `payment-worker` có `KAFKA_BOOTSTRAP` (mặc định rỗng = tắt). Khi nối banking:
+Platform: ns `kafka`, bootstrap lab:
 
-```yaml
-# gitops overlay hoặc values
-orderService:
-  env:
-    KAFKA_BOOTSTRAP: "redpanda.kafka.svc.cluster.local:9092"
-paymentWorker:
-  env:
-    KAFKA_BOOTSTRAP: "redpanda.kafka.svc.cluster.local:9092"
+```text
+npd-kafka-kafka-bootstrap.kafka.svc.cluster.local:9092
 ```
+
+Shop wire: `gitops/values-kafka.yaml` (đã bật trong `deploy/argocd/npd-shop.yaml`).
+
+```bash
+# Sync Argo npd-shop sau khi push
+oc -n npd-shop get deploy order-service payment-worker -o yaml | grep KAFKA_BOOTSTRAP
+# Tạo đơn trên shop → Kafka UI topic orders.events có message
+```
+
+Chi tiết: `docs/kafka-strimzi.md`. Banking consume/produce: làm sau (user `npd-banking`).
 
 ---
 

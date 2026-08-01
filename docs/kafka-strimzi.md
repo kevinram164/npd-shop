@@ -26,4 +26,19 @@ Bootstrap lab:
 npd-kafka-kafka-bootstrap.kafka.svc.cluster.local:9092
 ```
 
-Bật shop: uncomment `gitops/values-kafka.yaml` trong `deploy/argocd/npd-shop.yaml`.
+Shop đã wire: `gitops/values-kafka.yaml` trong `deploy/argocd/npd-shop.yaml`.
+
+```bash
+oc -n argocd app sync npd-shop   # hoặc UI Sync
+oc -n npd-shop logs -l app.kubernetes.io/name=order-service --tail=30 | grep -i kafka
+# Đặt hàng → https://kafka-ui-platform.apps.ocp01.npd.co → topic orders.events
+```
+
+**SCRAM (gần prod):** khi Kafka bật `values-prod` (tắt plain + ACL), copy secret:
+
+```bash
+oc -n kafka get secret npd-shop -o jsonpath='{.data.password}' | base64 -d; echo
+# App: bootstrap :9093 + SASL_SSL SCRAM (cần thêm env/client code)
+```
+
+**Banking (bước sau):** consumer `orders.events` / producer `payments.events` với user `npd-banking`.

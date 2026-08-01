@@ -20,8 +20,7 @@ spec:
         - values.yaml
         - ../../gitops/values-images.yaml
         - ../../gitops/values-observability.yaml
-        # Bật khi Strimzi Ready: bỏ comment dòng dưới
-        # - ../../gitops/values-kafka.yaml
+        - ../../gitops/values-kafka.yaml
   destination:
     server: https://kubernetes.default.svc
     namespace: npd-shop
