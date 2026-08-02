@@ -50,6 +50,8 @@ export const api = {
     request("/api/auth/login", { method: "POST", body: JSON.stringify(body) }),
   me: (token) => request("/api/auth/me", { token }),
   adminStats: (token) => request("/api/admin/stats", { token }),
+  adminFinance: (token, grain = "day") =>
+    request(`/api/admin/finance?grain=${encodeURIComponent(grain)}`, { token }),
   adminOrders: (token, { status, q } = {}) => {
     const params = new URLSearchParams();
     if (status) params.set("status", status);

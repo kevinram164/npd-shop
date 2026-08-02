@@ -4,7 +4,8 @@ import logging
 import secrets
 import string
 from contextlib import asynccontextmanager
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
+from typing import Literal
 
 import httpx
 from fastapi import Depends, FastAPI, HTTPException, Query
@@ -19,10 +20,12 @@ from common.kafka_bus import publish_json
 from common.models import Order, OrderItem, OrderStatus, User
 from common.observability import instrument_fastapi
 from common.schemas import (
+    AdminFinanceOut,
     AdminOrderStatusIn,
     AdminStatsOut,
     BankTransferInfo,
     CheckoutIn,
+    FinancePointOut,
     MarkPaidIn,
     OrderOut,
 )
@@ -249,6 +252,114 @@ def admin_stats(_: User = Depends(require_admin), db: Session = Depends(get_db))
         cancelled=count_status(OrderStatus.cancelled.value),
         expired=count_status(OrderStatus.expired.value),
         revenue_paid_vnd=int(revenue),
+    )
+
+
+def _period_key(dt: datetime, grain: str) -> str:
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    dt = dt.astimezone(timezone.utc)
+    if grain == "year":
+        return f"{dt.year:04d}"
+    if grain == "month":
+        return f"{dt.year:04d}-{dt.month:02d}"
+    return f"{dt.year:04d}-{dt.month:02d}-{dt.day:02d}"
+
+
+def _period_label(key: str, grain: str) -> str:
+    if grain == "year":
+        return key
+    if grain == "month":
+        y, m = key.split("-")
+        return f"T{int(m)}/{y}"
+    y, m, d = key.split("-")
+    return f"{int(d):02d}/{int(m):02d}"
+
+
+def _iter_period_keys(grain: str, now: datetime) -> list[str]:
+    if now.tzinfo is None:
+        now = now.replace(tzinfo=timezone.utc)
+    now = now.astimezone(timezone.utc)
+    keys: list[str] = []
+    if grain == "day":
+        for i in range(29, -1, -1):
+            keys.append(_period_key(now - timedelta(days=i), "day"))
+    elif grain == "month":
+        y, m = now.year, now.month
+        for i in range(11, -1, -1):
+            mm = m - i
+            yy = y
+            while mm <= 0:
+                mm += 12
+                yy -= 1
+            keys.append(f"{yy:04d}-{mm:02d}")
+    else:
+        for i in range(4, -1, -1):
+            keys.append(f"{now.year - i:04d}")
+    return keys
+
+
+@app.get("/api/admin/finance", response_model=AdminFinanceOut)
+def admin_finance(
+    grain: Literal["day", "month", "year"] = Query(default="day"),
+    _: User = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """Thu = đơn paid; chi ước tính = thu * cost_ratio; lãi = thu − chi."""
+    ratio = max(0.0, min(1.0, float(settings.finance_cost_ratio)))
+    now = datetime.now(timezone.utc)
+    keys = _iter_period_keys(grain, now)
+    buckets = {k: {"inflow": 0, "orders": 0} for k in keys}
+
+    paid_rows = db.execute(
+        select(Order.paid_at, Order.created_at, Order.total_vnd, Order.paid_amount_vnd).where(
+            Order.status == OrderStatus.paid.value
+        )
+    ).all()
+    for paid_at, created_at, total_vnd, paid_amount in paid_rows:
+        when = paid_at or created_at
+        if when is None:
+            continue
+        key = _period_key(when, grain)
+        if key not in buckets:
+            continue
+        amount = int(paid_amount if paid_amount is not None else total_vnd)
+        buckets[key]["inflow"] += amount
+        buckets[key]["orders"] += 1
+
+    series: list[FinancePointOut] = []
+    for key in keys:
+        inflow = buckets[key]["inflow"]
+        outflow = int(round(inflow * ratio))
+        series.append(
+            FinancePointOut(
+                period=key,
+                label=_period_label(key, grain),
+                inflow_vnd=inflow,
+                outflow_vnd=outflow,
+                profit_vnd=inflow - outflow,
+                orders_paid=buckets[key]["orders"],
+            )
+        )
+
+    inflow_total = sum(p.inflow_vnd for p in series)
+    outflow_total = sum(p.outflow_vnd for p in series)
+    pending = (
+        db.execute(
+            select(func.coalesce(func.sum(Order.total_vnd), 0)).where(
+                Order.status == OrderStatus.pending_payment.value
+            )
+        ).scalar()
+        or 0
+    )
+    return AdminFinanceOut(
+        grain=grain,
+        cost_ratio=ratio,
+        inflow_vnd=inflow_total,
+        outflow_vnd=outflow_total,
+        profit_vnd=inflow_total - outflow_total,
+        pending_vnd=int(pending),
+        series=series,
     )
 
 

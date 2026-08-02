@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { api, formatVnd, STATUS_LABEL } from "../api";
 import { useAuth } from "../auth";
+import FinanceChart from "../components/FinanceChart";
 
 const FILTERS = [
   { key: "", label: "Tất cả" },
@@ -13,9 +14,17 @@ const FILTERS = [
   { key: "expired", label: "Hết hạn" },
 ];
 
+const GRAINS = [
+  { key: "day", label: "Theo ngày", hint: "30 ngày gần nhất" },
+  { key: "month", label: "Theo tháng", hint: "12 tháng" },
+  { key: "year", label: "Theo năm", hint: "5 năm" },
+];
+
 export default function AdminPage() {
   const { user, token, ready, isAdmin, logout } = useAuth();
   const [stats, setStats] = useState(null);
+  const [finance, setFinance] = useState(null);
+  const [grain, setGrain] = useState("day");
   const [orders, setOrders] = useState([]);
   const [status, setStatus] = useState("");
   const [q, setQ] = useState("");
@@ -24,12 +33,14 @@ export default function AdminPage() {
   async function load() {
     if (!token) return;
     try {
-      const [s, list] = await Promise.all([
+      const [s, list, fin] = await Promise.all([
         api.adminStats(token),
         api.adminOrders(token, { status: status || undefined, q: q || undefined }),
+        api.adminFinance(token, grain),
       ]);
       setStats(s);
       setOrders(list);
+      setFinance(fin);
       setError("");
     } catch (e) {
       setError(e.message);
@@ -38,7 +49,7 @@ export default function AdminPage() {
 
   useEffect(() => {
     if (isAdmin) load();
-  }, [token, isAdmin, status]);
+  }, [token, isAdmin, status, grain]);
 
   if (!ready) return <main className="page"><p className="muted">Đang tải…</p></main>;
   if (!user) return <Navigate to="/login" replace state={{ from: "/admin" }} />;
@@ -48,6 +59,8 @@ export default function AdminPage() {
     await api.adminUpdateOrder(token, code, next);
     await load();
   }
+
+  const grainMeta = GRAINS.find((g) => g.key === grain);
 
   return (
     <main className="page admin-page">
@@ -94,6 +107,55 @@ export default function AdminPage() {
           </div>
         </div>
       )}
+
+      <section className="finance-dash">
+        <div className="finance-dash__head">
+          <div>
+            <h2 className="section-title">Dashboard tài chính</h2>
+            <p className="muted">
+              Thu từ đơn đã thanh toán · Chi ước tính (COGS{" "}
+              {finance ? Math.round(finance.cost_ratio * 100) : "—"}%) · Lãi = Thu − Chi
+              {grainMeta ? ` · ${grainMeta.hint}` : ""}
+            </p>
+          </div>
+          <div className="catalog__filters">
+            {GRAINS.map((g) => (
+              <button
+                key={g.key}
+                type="button"
+                className={`chip ${grain === g.key ? "chip--active" : ""}`}
+                onClick={() => setGrain(g.key)}
+              >
+                {g.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {finance && (
+          <>
+            <div className="stat-grid finance-summary">
+              <div className="stat stat--ok">
+                <span>Tổng thu</span>
+                <strong>{formatVnd(finance.inflow_vnd)}</strong>
+              </div>
+              <div className="stat">
+                <span>Tổng chi (ước tính)</span>
+                <strong>{formatVnd(finance.outflow_vnd)}</strong>
+              </div>
+              <div className={`stat ${finance.profit_vnd >= 0 ? "stat--ok" : "stat--danger"}`}>
+                <span>{finance.profit_vnd >= 0 ? "Lãi" : "Lỗ"}</span>
+                <strong>{formatVnd(finance.profit_vnd)}</strong>
+              </div>
+              <div className="stat stat--warn">
+                <span>Chờ thu</span>
+                <strong>{formatVnd(finance.pending_vnd)}</strong>
+              </div>
+            </div>
+            <FinanceChart series={finance.series} />
+          </>
+        )}
+      </section>
 
       <div className="catalog__toolbar">
         <div className="catalog__filters">

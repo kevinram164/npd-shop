@@ -32,6 +32,8 @@ class Settings(BaseSettings):
     kafka_password: str = ""
     kafka_ssl_cafile: str = "/etc/kafka/certs/ca.crt"
     internal_token: str = "noli-internal-dev"
+    # Demo COGS: chi = thu * cost_ratio (chưa có cost_vnd trên product)
+    finance_cost_ratio: float = 0.7
 
     @property
     def cors_origin_list(self) -> list[str]:

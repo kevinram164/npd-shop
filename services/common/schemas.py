@@ -120,5 +120,24 @@ class AdminStatsOut(BaseModel):
     revenue_paid_vnd: int
 
 
+class FinancePointOut(BaseModel):
+    period: str
+    label: str
+    inflow_vnd: int
+    outflow_vnd: int
+    profit_vnd: int
+    orders_paid: int
+
+
+class AdminFinanceOut(BaseModel):
+    grain: str
+    cost_ratio: float
+    inflow_vnd: int
+    outflow_vnd: int
+    profit_vnd: int
+    pending_vnd: int
+    series: list[FinancePointOut]
+
+
 class AdminOrderStatusIn(BaseModel):
     status: str
