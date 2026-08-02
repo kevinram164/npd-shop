@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import secrets
 import string
 from contextlib import asynccontextmanager
@@ -34,6 +35,9 @@ from common.security import (
 
 SERVICE = "noli-order-service"
 VALID_STATUSES = {s.value for s in OrderStatus}
+
+logging.basicConfig(level=logging.INFO)
+log = logging.getLogger(SERVICE)
 
 
 def _payment_info(order: Order) -> BankTransferInfo:
