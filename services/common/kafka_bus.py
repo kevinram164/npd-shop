@@ -35,7 +35,8 @@ def _get_producer():
         linger_ms=int(os.getenv("KAFKA_LINGER_MS", "20")),
         batch_size=int(os.getenv("KAFKA_BATCH_SIZE", "32768")),
         request_timeout_ms=int(os.getenv("KAFKA_REQUEST_TIMEOUT_MS", "30000")),
-        compression_type=os.getenv("KAFKA_COMPRESSION", "lz4"),
+        # gzip có sẵn stdlib; lz4 cần package `lz4` (image hiện không có)
+        compression_type=os.getenv("KAFKA_COMPRESSION", "gzip") or None,
     )
     return _producer
 
