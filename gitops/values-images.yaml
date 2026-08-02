@@ -27,7 +27,7 @@ orderService:
 paymentWorker:
   image:
     repository: harbor-platform.apps.ocp01.npd.co/npd-shop/payment-worker
-    tag: "0be6bd9"
+    tag: "638ab7e"
     pullPolicy: Always
 
 shopWeb:
