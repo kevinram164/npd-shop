@@ -4,5 +4,5 @@
 orderService:
   env:
     BANK_ACCOUNT_NAME: "Nguyễn Hương Ly"
-    BANK_ACCOUNT_NUMBER: "REPLACE_AFTER_SEED"
+    BANK_ACCOUNT_NUMBER: "638607571915"
     BANK_NAME: "NPD Bank Demo"
