@@ -1,17 +1,29 @@
-# Wire npd-shop → shared Strimzi Kafka (lab plain :9092).
-# Bật qua deploy/argocd/npd-shop.yaml valueFiles.
-#
-# Lab hiện tại: plain listener, không ACL — không cần secret SCRAM.
-# Gần prod (values-prod Kafka): đổi sang :9093 + SCRAM từ secret npd-shop (ns kafka).
+# Wire npd-shop → Strimzi (TLS:9093 + SCRAM-SHA-512 + ACL).
+# Trước sync Argo: copy secret từ ns kafka (xem docs/kafka-strimzi.md).
+
+kafka:
+  enabled: true
+  userSecretName: npd-shop-kafka-user
+  userSecretPasswordKey: password
+  caSecretName: npd-shop-kafka-cluster-ca
+  caMountPath: /etc/kafka/certs
 
 orderService:
   env:
-    KAFKA_BOOTSTRAP: "npd-kafka-kafka-bootstrap.kafka.svc.cluster.local:9092"
+    KAFKA_BOOTSTRAP: "npd-kafka-kafka-bootstrap.kafka.svc.cluster.local:9093"
     KAFKA_ORDERS_TOPIC: "orders.events"
     KAFKA_PAYMENTS_TOPIC: "payments.events"
+    KAFKA_SECURITY_PROTOCOL: "SASL_SSL"
+    KAFKA_SASL_MECHANISM: "SCRAM-SHA-512"
+    KAFKA_USERNAME: "npd-shop"
+    KAFKA_SSL_CAFILE: "/etc/kafka/certs/ca.crt"
 
 paymentWorker:
   env:
-    KAFKA_BOOTSTRAP: "npd-kafka-kafka-bootstrap.kafka.svc.cluster.local:9092"
+    KAFKA_BOOTSTRAP: "npd-kafka-kafka-bootstrap.kafka.svc.cluster.local:9093"
     KAFKA_ORDERS_TOPIC: "orders.events"
     KAFKA_PAYMENTS_TOPIC: "payments.events"
+    KAFKA_SECURITY_PROTOCOL: "SASL_SSL"
+    KAFKA_SASL_MECHANISM: "SCRAM-SHA-512"
+    KAFKA_USERNAME: "npd-shop"
+    KAFKA_SSL_CAFILE: "/etc/kafka/certs/ca.crt"

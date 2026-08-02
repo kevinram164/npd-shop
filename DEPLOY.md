@@ -160,23 +160,26 @@ Browser: https://npd-shop.co — catalog, checkout (mã `NOLI-xxxxxx`), admin po
 
 ---
 
-## Kafka (shared Strimzi — đã Ready)
+## Kafka (TLS + SCRAM — gần prod)
 
-Platform: ns `kafka`, bootstrap lab:
+Platform: ns `kafka`, bootstrap:
 
 ```text
-npd-kafka-kafka-bootstrap.kafka.svc.cluster.local:9092
+npd-kafka-kafka-bootstrap.kafka.svc.cluster.local:9093
 ```
-
-Shop wire: `gitops/values-kafka.yaml` (đã bật trong `deploy/argocd/npd-shop.yaml`).
 
 ```bash
-# Sync Argo npd-shop sau khi push
-oc -n npd-shop get deploy order-service payment-worker -o yaml | grep KAFKA_BOOTSTRAP
-# Tạo đơn trên shop → Kafka UI topic orders.events có message
+# 1) Copy SCRAM user + CA vào ns shop
+bash deploy/scripts/sync-kafka-client-secrets.sh
+
+# 2) Build/push order-service + payment-worker (kafka_auth.py), sync Argo npd-shop
+
+# 3) Verify
+oc -n npd-shop get secret npd-shop-kafka-user npd-shop-kafka-cluster-ca
+# Đặt hàng → Kafka UI topic orders.events
 ```
 
-Chi tiết: `docs/kafka-strimzi.md`. Banking consume/produce: làm sau (user `npd-banking`).
+Chi tiết: `docs/kafka-strimzi.md`. Banking: user `npd-banking` (bước sau).
 
 ---
 

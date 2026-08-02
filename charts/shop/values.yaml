@@ -6,6 +6,14 @@ imagePullSecrets:
 # Secret keys: DATABASE_URL, JWT_SECRET, INTERNAL_TOKEN (optional ADMIN_PASSWORD)
 appSecretName: npd-shop-secrets
 
+# Shared Strimzi (platform ns kafka) — bật qua gitops/values-kafka.yaml
+kafka:
+  enabled: false
+  userSecretName: npd-shop-kafka-user
+  userSecretPasswordKey: password
+  caSecretName: npd-shop-kafka-cluster-ca
+  caMountPath: /etc/kafka/certs
+
 domain: npd-shop.co
 
 gateway:

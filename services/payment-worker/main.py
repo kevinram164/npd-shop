@@ -45,10 +45,12 @@ def _kafka_loop(stop: threading.Event) -> None:
         log.warning("kafka-python not installed; consumer disabled")
         return
 
+    from common.kafka_auth import kafka_client_kwargs
+
     tracer = get_tracer(SERVICE)
     consumer = KafkaConsumer(
         settings.kafka_payments_topic,
-        bootstrap_servers=bootstrap.split(","),
+        **kafka_client_kwargs(),
         group_id="noli-payment-worker",
         value_deserializer=lambda b: json.loads(b.decode("utf-8")),
         auto_offset_reset="earliest",

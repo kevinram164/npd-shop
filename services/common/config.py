@@ -26,6 +26,11 @@ class Settings(BaseSettings):
     kafka_bootstrap: str = ""
     kafka_orders_topic: str = "orders.events"
     kafka_payments_topic: str = "payments.events"
+    kafka_security_protocol: str = ""
+    kafka_sasl_mechanism: str = "SCRAM-SHA-512"
+    kafka_username: str = "npd-shop"
+    kafka_password: str = ""
+    kafka_ssl_cafile: str = "/etc/kafka/certs/ca.crt"
     internal_token: str = "noli-internal-dev"
 
     @property

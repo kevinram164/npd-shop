@@ -21,6 +21,31 @@ app.kubernetes.io/part-of: npd-shop
       name: {{ $.Values.appSecretName }}
       key: INTERNAL_TOKEN
 {{- end }}
+{{- if and $.Values.kafka.enabled $.Values.kafka.userSecretName }}
+- name: KAFKA_PASSWORD
+  valueFrom:
+    secretKeyRef:
+      name: {{ $.Values.kafka.userSecretName }}
+      key: {{ $.Values.kafka.userSecretPasswordKey | default "password" }}
+{{- end }}
+{{- end }}
+
+{{- define "shop.kafkaVolumes" -}}
+{{- if and .Values.kafka.enabled .Values.kafka.caSecretName }}
+volumes:
+  - name: kafka-cluster-ca
+    secret:
+      secretName: {{ .Values.kafka.caSecretName }}
+{{- end }}
+{{- end }}
+
+{{- define "shop.kafkaVolumeMounts" -}}
+{{- if and .Values.kafka.enabled .Values.kafka.caSecretName }}
+volumeMounts:
+  - name: kafka-cluster-ca
+    mountPath: {{ .Values.kafka.caMountPath | default "/etc/kafka/certs" }}
+    readOnly: true
+{{- end }}
 {{- end }}
 
 {{- define "shop.httpProbes" -}}

@@ -1,6 +1,6 @@
 """Optional Kafka publish — no-op if KAFKA_BOOTSTRAP empty.
 
-Prod-oriented producer defaults: acks=all, idempotence, lz4, retries.
+Supports plain (lab) and SASL_SSL + SCRAM-SHA-512 (near-prod Strimzi).
 """
 
 from __future__ import annotations
@@ -10,6 +10,7 @@ import logging
 import os
 
 from common.config import settings
+from common.kafka_auth import kafka_client_kwargs
 
 log = logging.getLogger("noli.kafka")
 
@@ -22,9 +23,9 @@ def _get_producer():
         return _producer
     from kafka import KafkaProducer
 
-    bootstrap = settings.kafka_bootstrap.strip()
+    kw = kafka_client_kwargs()
     _producer = KafkaProducer(
-        bootstrap_servers=bootstrap.split(","),
+        **kw,
         value_serializer=lambda v: json.dumps(v).encode("utf-8"),
         key_serializer=lambda v: v.encode("utf-8") if v else None,
         acks="all",

@@ -22,6 +22,7 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      {{- include "shop.kafkaVolumes" . | nindent 6 }}
       containers:
         - name: payment-worker
           image: "{{ .Values.paymentWorker.image.repository }}:{{ .Values.paymentWorker.image.tag | toString }}"
@@ -35,6 +36,7 @@ spec:
               value: {{ $v | quote }}
             {{- end }}
             {{- include "shop.secretEnv" . | nindent 12 }}
+          {{- include "shop.kafkaVolumeMounts" . | nindent 10 }}
           {{- include "shop.httpProbes" (dict "path" "/health") | nindent 10 }}
           resources:
             {{- toYaml .Values.paymentWorker.resources | nindent 12 }}

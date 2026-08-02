@@ -1,44 +1,40 @@
-# Shared Strimzi Kafka (platform infra)
-
-**Deploy từng bước:** `banking-demo/phase9-gitops-platform/kafka/DEPLOY.md`
-
-Kafka nằm ở **banking-demo platform infra** (Helm + ArgoCD), không deploy trong repo shop.
-
-| Argo app | Vai trò |
-|----------|---------|
-| `infra-strimzi` | Helm Operator |
-| `infra-kafka` | Helm cluster + topics |
-| `infra-kafka-ui` | Helm Kafbat UI |
-
-UI: https://kafka-ui-platform.apps.ocp01.npd.co
-
-### Monitor
-
-| Tool | Mức độ (lab hiện tại) |
-|------|------------------------|
-| Kafka UI | Topics / messages / groups — đầy đủ |
-| Coroot | Pod + traffic eBPF ns `kafka` — một phần |
-| Instana | K8s pods + OTEL messaging từ app — một phần (chưa Kafka sensor) |
-
-Bootstrap lab:
-
-```text
-npd-kafka-kafka-bootstrap.kafka.svc.cluster.local:9092
-```
-
-Shop đã wire: `gitops/values-kafka.yaml` trong `deploy/argocd/npd-shop.yaml`.
-
-```bash
-oc -n argocd app sync npd-shop   # hoặc UI Sync
-oc -n npd-shop logs -l app.kubernetes.io/name=order-service --tail=30 | grep -i kafka
-# Đặt hàng → https://kafka-ui-platform.apps.ocp01.npd.co → topic orders.events
-```
-
-**SCRAM (gần prod):** khi Kafka bật `values-prod` (tắt plain + ACL), copy secret:
-
-```bash
-oc -n kafka get secret npd-shop -o jsonpath='{.data.password}' | base64 -d; echo
-# App: bootstrap :9093 + SASL_SSL SCRAM (cần thêm env/client code)
-```
-
-**Banking (bước sau):** consumer `orders.events` / producer `payments.events` với user `npd-banking`.
+# Shared Strimzi Kafka (platform infra)
+
+**Deploy:** `banking-demo/phase9-gitops-platform/kafka/DEPLOY.md`
+
+| Listener | Port | Auth |
+|----------|------|------|
+| ~~plain~~ | — | **tắt** (gần prod) |
+| tls | **9093** | TLS + **SCRAM-SHA-512** + ACL |
+
+UI: https://kafka-ui-platform.apps.ocp01.npd.co (SCRAM user `kafka-ui`)
+
+Bootstrap:
+
+```text
+npd-kafka-kafka-bootstrap.kafka.svc.cluster.local:9093
+```
+
+### Shop wire (SCRAM)
+
+1. Kafka Ready + KafkaUser `npd-shop` Ready  
+2. Copy secrets sang ns shop:
+
+```bash
+bash deploy/scripts/sync-kafka-client-secrets.sh
+# cần jq + oc
+```
+
+3. Build/push image order-service + payment-worker (có `kafka_auth.py`)  
+4. Sync Argo `npd-shop` (`values-kafka.yaml` đã bật)  
+5. Đặt hàng → Kafka UI topic `orders.events`
+
+```bash
+oc -n npd-shop get secret npd-shop-kafka-user npd-shop-kafka-cluster-ca
+oc -n npd-shop get deploy order-service -o yaml | grep -E 'KAFKA_|kafka'
+```
+
+### Banking (sau)
+
+User `npd-banking` + cùng bootstrap SCRAM; consumer `orders.events`, producer `payments.events`.
+
