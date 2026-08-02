@@ -21,6 +21,7 @@ spec:
         - ../../gitops/values-images.yaml
         - ../../gitops/values-observability.yaml
         - ../../gitops/values-kafka.yaml
+        - ../../gitops/values-merchant.yaml
   destination:
     server: https://kubernetes.default.svc
     namespace: npd-shop

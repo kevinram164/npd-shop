@@ -1,0 +1,8 @@
+# Chủ shop Nguyễn Hương Ly — STK nhận CK (điền account_number sau seed_huongly.py).
+# Wire vào Argo npd-shop valueFiles.
+
+orderService:
+  env:
+    BANK_ACCOUNT_NAME: "Nguyễn Hương Ly"
+    BANK_ACCOUNT_NUMBER: "REPLACE_AFTER_SEED"
+    BANK_NAME: "NPD Bank Demo"
