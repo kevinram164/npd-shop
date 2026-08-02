@@ -193,3 +193,4 @@ Chi tiết: `docs/kafka-strimzi.md`. Banking: user `npd-banking` (bước sau).
 | HostAlreadyClaimed | Domain đang bị Route khác giữ — `oc get route -A \| grep npd-shop` |
 | CORS lỗi | `gateway.env.CORS_ORIGINS` phải gồm `https://npd-shop.co` |
 | Instana không thấy service | Cần OTEL env (đã có trong `values-observability.yaml`) + collector Running |
+| `kafka.vendor.six.moves` | Python 3.12 + `kafka-python==2.0.2` — dùng `kafka-python-ng` (đã sửa `requirements.txt`), rebuild order/payment |
