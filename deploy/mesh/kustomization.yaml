@@ -4,3 +4,4 @@ resources:
   - namespace.yaml
   - peer-authentication.yaml
   - authorization.yaml
+  - service-entries.yaml

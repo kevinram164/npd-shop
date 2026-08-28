@@ -1,0 +1,32 @@
+# Đăng ký dependency ngoài mesh → Kiali/ztunnel gán tên thay vì "unknown".
+# Không enroll postgres/kafka vào ambient — chỉ khai báo host:port.
+---
+apiVersion: networking.istio.io/v1
+kind: ServiceEntry
+metadata:
+  name: postgres-platform
+  namespace: npd-shop
+spec:
+  hosts:
+    - postgres-ha-postgresql-primary.postgres.svc.cluster.local
+  ports:
+    - number: 5432
+      name: tcp-postgres
+      protocol: TCP
+  location: MESH_EXTERNAL
+  resolution: DNS
+---
+apiVersion: networking.istio.io/v1
+kind: ServiceEntry
+metadata:
+  name: kafka-platform
+  namespace: npd-shop
+spec:
+  hosts:
+    - npd-kafka-kafka-bootstrap.kafka.svc.cluster.local
+  ports:
+    - number: 9093
+      name: tcp-kafka-tls
+      protocol: TCP
+  location: MESH_EXTERNAL
+  resolution: DNS
