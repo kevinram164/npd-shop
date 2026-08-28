@@ -141,3 +141,12 @@ class AdminFinanceOut(BaseModel):
 
 class AdminOrderStatusIn(BaseModel):
     status: str
+
+
+class RestockLineIn(BaseModel):
+    product_id: int
+    quantity: int = Field(ge=1, le=9999)
+
+
+class RestockIn(BaseModel):
+    items: list[RestockLineIn] = Field(min_length=1)

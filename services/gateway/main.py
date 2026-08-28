@@ -18,6 +18,7 @@ ROUTES: list[tuple[str, str]] = [
     ("/api/auth", "auth_url"),
     ("/api/categories", "catalog_url"),
     ("/api/products", "catalog_url"),
+    ("/api/admin/catalog", "catalog_url"),
     ("/api/orders", "order_url"),
     ("/api/admin", "order_url"),
     ("/api/payments", "payment_url"),

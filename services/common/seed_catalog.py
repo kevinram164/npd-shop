@@ -18,6 +18,27 @@ def _with_images(row: dict) -> dict:
     return data
 
 
+def _catalog_stock_by_sku() -> dict[str, int]:
+    return {row["sku"]: int(row["stock"]) for row in CATALOG}
+
+
+def replenish_depleted(db: Session) -> int:
+    """Khi tổng stock = 0 (cron shop-buy), restore mức seed ban đầu theo SKU."""
+    products = list(db.execute(select(Product)).scalars())
+    if not products or sum(p.stock for p in products) > 0:
+        return 0
+    by_sku = _catalog_stock_by_sku()
+    updated = 0
+    for p in products:
+        target = by_sku.get(p.sku)
+        if target is not None and p.stock != target:
+            p.stock = target
+            updated += 1
+    if updated:
+        db.commit()
+    return updated
+
+
 def seed_products(db: Session) -> int:
     existing = db.execute(select(Product.id).limit(1)).first()
     if existing:
@@ -30,6 +51,9 @@ def seed_products(db: Session) -> int:
                 updated += 1
         if updated:
             db.commit()
+        replenished = replenish_depleted(db)
+        if replenished:
+            print(f"[catalog] replenished stock for {replenished} SKUs (depleted)", flush=True)
         return 0
     for row in CATALOG:
         db.add(Product(**_with_images(row)))

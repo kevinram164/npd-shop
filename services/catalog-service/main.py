@@ -8,11 +8,12 @@ from sqlalchemy.orm import Session
 from common.config import settings
 from common.database import Base, SessionLocal, engine, get_db
 from common.db_bootstrap import init_db_in_background
-from common.models import Product
+from common.models import Product, User
 from common.observability import instrument_fastapi
 from common.product_images import urls_for_sku
-from common.schemas import CategoryOut, ProductOut
-from common.security import require_internal
+from common.schemas import CategoryOut, ProductOut, RestockIn
+from common.security import require_admin, require_internal
+from common.models import User
 from common.seed_catalog import seed_products
 
 SERVICE = "noli-catalog-service"
@@ -140,3 +141,34 @@ def reserve_stock(
         )
     db.commit()
     return {"lines": lines}
+
+
+@app.post("/api/admin/catalog/restock")
+def admin_restock(
+    payload: RestockIn,
+    db: Session = Depends(get_db),
+    _: User = Depends(require_admin),
+):
+    """Ly nhập hàng — cộng tồn sau CK supplier (ecosystem cron)."""
+    product_ids = [i.product_id for i in payload.items]
+    products = {
+        p.id: p
+        for p in db.execute(select(Product).where(Product.id.in_(product_ids))).scalars()
+    }
+    if len(products) != len(set(product_ids)):
+        raise HTTPException(400, "Có sản phẩm không tồn tại")
+    updated = []
+    for line in payload.items:
+        product = products[line.product_id]
+        product.stock += int(line.quantity)
+        updated.append(
+            {
+                "product_id": product.id,
+                "sku": product.sku,
+                "name": product.name,
+                "added": line.quantity,
+                "stock": product.stock,
+            }
+        )
+    db.commit()
+    return {"updated": updated}
