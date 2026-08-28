@@ -1,0 +1,125 @@
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: deny-all
+  namespace: npd-shop
+spec: {}
+---
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: allow-route-to-shop-web
+  namespace: npd-shop
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: shop-web
+  action: ALLOW
+  rules:
+    - to:
+        - operation:
+            ports: ["8080"]
+---
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: allow-route-to-gateway
+  namespace: npd-shop
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: gateway
+  action: ALLOW
+  rules:
+    - to:
+        - operation:
+            ports: ["8080"]
+---
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: allow-gateway-to-auth
+  namespace: npd-shop
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: auth-service
+  action: ALLOW
+  rules:
+    - from:
+        - source:
+            principals: ["cluster.local/ns/npd-shop/sa/gateway"]
+      to:
+        - operation:
+            ports: ["8001"]
+---
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: allow-to-catalog
+  namespace: npd-shop
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: catalog-service
+  action: ALLOW
+  rules:
+    - from:
+        - source:
+            principals:
+              - cluster.local/ns/npd-shop/sa/gateway
+              - cluster.local/ns/npd-shop/sa/order-service
+      to:
+        - operation:
+            ports: ["8002"]
+---
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: allow-to-order
+  namespace: npd-shop
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: order-service
+  action: ALLOW
+  rules:
+    - from:
+        - source:
+            principals:
+              - cluster.local/ns/npd-shop/sa/gateway
+              - cluster.local/ns/npd-shop/sa/payment-worker
+      to:
+        - operation:
+            ports: ["8003"]
+---
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: allow-gateway-to-payment
+  namespace: npd-shop
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: payment-worker
+  action: ALLOW
+  rules:
+    - from:
+        - source:
+            principals: ["cluster.local/ns/npd-shop/sa/gateway"]
+      to:
+        - operation:
+            ports: ["8004"]
+---
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: allow-observability-scrape
+  namespace: npd-shop
+spec:
+  action: ALLOW
+  rules:
+    - from:
+        - source:
+            namespaces: ["observability", "openshift-monitoring"]
+# Không ALLOW sang npd-banking HTTP.

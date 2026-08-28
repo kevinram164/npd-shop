@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: npd-shop
+  labels:
+    istio-discovery: enabled
+    # Ambient trên gateway/auth/catalog/order/payment (Helm). shop-web = none.

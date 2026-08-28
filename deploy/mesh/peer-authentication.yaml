@@ -1,0 +1,33 @@
+apiVersion: security.istio.io/v1
+kind: PeerAuthentication
+metadata:
+  name: default
+  namespace: npd-shop
+spec:
+  mtls:
+    mode: STRICT
+---
+apiVersion: security.istio.io/v1
+kind: PeerAuthentication
+metadata:
+  name: route-shop-web
+  namespace: npd-shop
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: shop-web
+  mtls:
+    mode: PERMISSIVE
+---
+# Nếu Route trỏ thẳng gateway
+apiVersion: security.istio.io/v1
+kind: PeerAuthentication
+metadata:
+  name: route-gateway
+  namespace: npd-shop
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: gateway
+  mtls:
+    mode: PERMISSIVE
