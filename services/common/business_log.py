@@ -23,4 +23,5 @@ def log_business(event: str, **fields: Any) -> None:
         "domain": "shop",
         **fields,
     }
-    log.info(json.dumps(payload, ensure_ascii=False))
+    line = json.dumps(payload, ensure_ascii=False)
+    logging.getLogger().info(line)

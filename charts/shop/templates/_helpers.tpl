@@ -49,7 +49,7 @@ volumeMounts:
 {{- end }}
 
 {{- define "shop.httpProbes" -}}
-{{- $p := .Values.probes | default dict -}}
+{{- $p := $.Values.probes | default dict -}}
 startupProbe:
   httpGet:
     path: {{ .path }}
