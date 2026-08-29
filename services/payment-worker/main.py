@@ -12,6 +12,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 from common.config import settings
+from common.business_log import log_business
 from common.observability import consumer_span, get_tracer, instrument_fastapi
 from common.schemas import MarkPaidIn, OrderOut
 
@@ -73,12 +74,21 @@ def _kafka_loop(stop: threading.Event) -> None:
                     {"messaging.destination": settings.kafka_payments_topic},
                 ):
                     try:
-                        apply_to_order(
+                        result = apply_to_order(
                             MarkPaidIn(
                                 transfer_ref=data["transfer_ref"],
                                 amount_vnd=int(data["amount_vnd"]),
                                 force_status=data.get("force_status"),
                             )
+                        )
+                        log_business(
+                            "payment_received",
+                            transfer_ref=data["transfer_ref"],
+                            amount_vnd=int(data["amount_vnd"]),
+                            order_code=result.get("order_code"),
+                            status=result.get("status"),
+                            outcome=result.get("status"),
+                            source=data.get("source", "kafka"),
                         )
                         consumer.commit()
                     except Exception as exc:

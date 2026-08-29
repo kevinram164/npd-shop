@@ -17,6 +17,7 @@ from common.config import settings
 from common.database import Base, engine, get_db
 from common.db_bootstrap import init_db_in_background
 from common.kafka_bus import publish_json
+from common.business_log import log_business
 from common.models import Order, OrderItem, OrderStatus, User
 from common.observability import instrument_fastapi
 from common.schemas import (
@@ -155,6 +156,15 @@ def create_order(
         },
         key=order.transfer_ref,
     )
+    log_business(
+        "order_created",
+        order_code=order.order_code,
+        transfer_ref=order.transfer_ref,
+        total_vnd=order.total_vnd,
+        status=order.status,
+        customer_phone=order.customer_phone,
+        item_count=len(order.items),
+    )
     return _order_out(order)
 
 
@@ -225,6 +235,14 @@ def apply_payment(
             "amount_vnd": order.paid_amount_vnd,
         },
         key=order.transfer_ref,
+    )
+    log_business(
+        "order_payment_applied",
+        order_code=order.order_code,
+        transfer_ref=order.transfer_ref,
+        amount_vnd=order.paid_amount_vnd,
+        status=order.status,
+        outcome="paid" if order.status == OrderStatus.paid.value else order.status,
     )
     return _order_out(order)
 
