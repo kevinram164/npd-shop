@@ -8,7 +8,23 @@ import os
 import time
 from typing import Any
 
-log = logging.getLogger("noli.business")
+_json_logger: logging.Logger | None = None
+
+
+def _get_json_logger() -> logging.Logger:
+    """Pure JSON lines (no level/logger prefix) — Fluent Bit json parser → field event."""
+    global _json_logger
+    if _json_logger is not None:
+        return _json_logger
+    logger = logging.getLogger("noli.business")
+    if not logger.handlers:
+        handler = logging.StreamHandler()
+        handler.setFormatter(logging.Formatter("%(message)s"))
+        logger.addHandler(handler)
+        logger.setLevel(os.getenv("LOG_LEVEL", "INFO").upper())
+        logger.propagate = False
+    _json_logger = logger
+    return logger
 
 
 def log_business(event: str, **fields: Any) -> None:
@@ -23,5 +39,4 @@ def log_business(event: str, **fields: Any) -> None:
         "domain": "shop",
         **fields,
     }
-    line = json.dumps(payload, ensure_ascii=False)
-    logging.getLogger().info(line)
+    _get_json_logger().info(json.dumps(payload, ensure_ascii=False))
