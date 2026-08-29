@@ -8,7 +8,9 @@ gateway:
     OTEL_SERVICE_NAME: "noli-shop-gateway"
     OTEL_RESOURCE_ATTRIBUTES: "deployment.environment=dev-ocp,k8s.namespace.name=npd-shop,k8s.cluster.name=ocp01"
     OTEL_HEARTBEAT: "1"
-    OTEL_HEARTBEAT_SECONDS: "30"
+    OTEL_HEARTBEAT_SECONDS: "3600"
+    SILENCE_PROBE_ACCESS_LOGS: "true"
+    UVICORN_ACCESS_LOG: "off"
 
 authService:
   env:
@@ -17,7 +19,9 @@ authService:
     OTEL_SERVICE_NAME: "noli-auth-service"
     OTEL_RESOURCE_ATTRIBUTES: "deployment.environment=dev-ocp,k8s.namespace.name=npd-shop,k8s.cluster.name=ocp01"
     OTEL_HEARTBEAT: "1"
-    OTEL_HEARTBEAT_SECONDS: "30"
+    OTEL_HEARTBEAT_SECONDS: "3600"
+    SILENCE_PROBE_ACCESS_LOGS: "true"
+    UVICORN_ACCESS_LOG: "off"
 
 catalogService:
   env:
@@ -26,7 +30,9 @@ catalogService:
     OTEL_SERVICE_NAME: "noli-catalog-service"
     OTEL_RESOURCE_ATTRIBUTES: "deployment.environment=dev-ocp,k8s.namespace.name=npd-shop,k8s.cluster.name=ocp01"
     OTEL_HEARTBEAT: "1"
-    OTEL_HEARTBEAT_SECONDS: "30"
+    OTEL_HEARTBEAT_SECONDS: "3600"
+    SILENCE_PROBE_ACCESS_LOGS: "true"
+    UVICORN_ACCESS_LOG: "off"
 
 orderService:
   env:
@@ -35,7 +41,9 @@ orderService:
     OTEL_SERVICE_NAME: "noli-order-service"
     OTEL_RESOURCE_ATTRIBUTES: "deployment.environment=dev-ocp,k8s.namespace.name=npd-shop,k8s.cluster.name=ocp01"
     OTEL_HEARTBEAT: "1"
-    OTEL_HEARTBEAT_SECONDS: "30"
+    OTEL_HEARTBEAT_SECONDS: "3600"
+    SILENCE_PROBE_ACCESS_LOGS: "true"
+    UVICORN_ACCESS_LOG: "off"
 
 paymentWorker:
   env:
@@ -44,4 +52,6 @@ paymentWorker:
     OTEL_SERVICE_NAME: "noli-payment-worker"
     OTEL_RESOURCE_ATTRIBUTES: "deployment.environment=dev-ocp,k8s.namespace.name=npd-shop,k8s.cluster.name=ocp01"
     OTEL_HEARTBEAT: "1"
-    OTEL_HEARTBEAT_SECONDS: "30"
+    OTEL_HEARTBEAT_SECONDS: "3600"
+    SILENCE_PROBE_ACCESS_LOGS: "true"
+    UVICORN_ACCESS_LOG: "off"

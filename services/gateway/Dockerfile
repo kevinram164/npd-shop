@@ -30,4 +30,4 @@ COPY gateway/main.py ./main.py
 RUN chmod -R a+rX /app && test -x /app/venv/bin/uvicorn
 
 EXPOSE 8080
-CMD ["/bin/sh", "-c", "echo '[noli-gateway] starting on 8080' >&2; exec /app/venv/bin/python -m uvicorn main:app --host 0.0.0.0 --port 8080"]
+CMD ["/bin/sh", "-c", "echo '[noli-gateway] starting on 8080' >&2; exec /app/venv/bin/python -m uvicorn main:app --host 0.0.0.0 --port 8080 --no-access-log"]

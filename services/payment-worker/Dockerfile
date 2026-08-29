@@ -30,4 +30,4 @@ COPY payment-worker/main.py ./main.py
 RUN chmod -R a+rX /app && test -x /app/venv/bin/uvicorn
 
 EXPOSE 8004
-CMD ["/bin/sh", "-c", "echo '[noli-payment] starting on 8004' >&2; exec /app/venv/bin/python -m uvicorn main:app --host 0.0.0.0 --port 8004"]
+CMD ["/bin/sh", "-c", "echo '[noli-payment] starting on 8004' >&2; exec /app/venv/bin/python -m uvicorn main:app --host 0.0.0.0 --port 8004 --no-access-log"]

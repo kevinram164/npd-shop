@@ -30,4 +30,4 @@ COPY auth-service/main.py ./main.py
 RUN chmod -R a+rX /app && test -x /app/venv/bin/uvicorn
 
 EXPOSE 8001
-CMD ["/bin/sh", "-c", "echo '[noli-auth] starting on 8001' >&2; exec /app/venv/bin/python -m uvicorn main:app --host 0.0.0.0 --port 8001"]
+CMD ["/bin/sh", "-c", "echo '[noli-auth] starting on 8001' >&2; exec /app/venv/bin/python -m uvicorn main:app --host 0.0.0.0 --port 8001 --no-access-log"]

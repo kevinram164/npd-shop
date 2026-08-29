@@ -160,14 +160,45 @@ def get_metrics_content() -> bytes:
     return generate_latest(_metrics_registry)
 
 
+_PROBE_ACCESS_MARKERS = (
+    '"GET /health ',
+    '"HEAD /health ',
+    '"GET /metrics ',
+    '"GET /api/health ',
+)
+
+
+class _HideProbeAccessLog(logging.Filter):
+    def filter(self, record: logging.LogRecord) -> bool:
+        msg = record.getMessage()
+        return not any(m in msg for m in _PROBE_ACCESS_MARKERS)
+
+
+def _silence_http_probe_logs() -> None:
+    """Tắt uvicorn access log cho /health, /metrics (probe + Prometheus)."""
+    if os.getenv("SILENCE_PROBE_ACCESS_LOGS", "true").lower() not in ("true", "1", "yes"):
+        return
+    flt = _HideProbeAccessLog()
+    for name in ("uvicorn.access", "uvicorn"):
+        logging.getLogger(name).addFilter(flt)
+    if os.getenv("UVICORN_ACCESS_LOG", "off").lower() in ("off", "0", "false", "no"):
+        access = logging.getLogger("uvicorn.access")
+        access.disabled = True
+        access.propagate = False
+
+
 def instrument_fastapi(app, service_name: str) -> None:
+    _silence_http_probe_logs()
     init_tracing(service_name)
     setup_metrics(service_name)
     start_heartbeat(service_name)
     try:
         from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 
-        FastAPIInstrumentor.instrument_app(app)
+        FastAPIInstrumentor.instrument_app(
+            app,
+            excluded_urls="/health,/metrics,/api/health,/docs,/openapi.json,/redoc",
+        )
     except Exception:
         pass
 

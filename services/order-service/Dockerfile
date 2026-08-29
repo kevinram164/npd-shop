@@ -30,4 +30,4 @@ COPY order-service/main.py ./main.py
 RUN chmod -R a+rX /app && test -x /app/venv/bin/uvicorn
 
 EXPOSE 8003
-CMD ["/bin/sh", "-c", "echo '[noli-order] starting on 8003' >&2; exec /app/venv/bin/python -m uvicorn main:app --host 0.0.0.0 --port 8003"]
+CMD ["/bin/sh", "-c", "echo '[noli-order] starting on 8003' >&2; exec /app/venv/bin/python -m uvicorn main:app --host 0.0.0.0 --port 8003 --no-access-log"]

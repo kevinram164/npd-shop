@@ -49,22 +49,23 @@ volumeMounts:
 {{- end }}
 
 {{- define "shop.httpProbes" -}}
+{{- $p := .Values.probes | default dict -}}
 startupProbe:
   httpGet:
     path: {{ .path }}
     port: http
   failureThreshold: 30
-  periodSeconds: 5
+  periodSeconds: {{ $p.startupPeriodSeconds | default 5 }}
 readinessProbe:
   httpGet:
     path: {{ .path }}
     port: http
-  periodSeconds: 10
+  periodSeconds: {{ $p.readinessPeriodSeconds | default 10 }}
   failureThreshold: 3
 livenessProbe:
   httpGet:
     path: {{ .path }}
     port: http
-  periodSeconds: 20
+  periodSeconds: {{ $p.livenessPeriodSeconds | default 20 }}
   failureThreshold: 3
 {{- end }}
