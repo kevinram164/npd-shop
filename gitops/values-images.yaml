@@ -3,31 +3,31 @@
 gateway:
   image:
     repository: harbor-platform.apps.ocp01.npd.co/npd-shop/gateway
-    tag: "fd8a0d2"
+    tag: "2a27bd0"
     pullPolicy: Always
 
 authService:
   image:
     repository: harbor-platform.apps.ocp01.npd.co/npd-shop/auth-service
-    tag: "fd8a0d2"
+    tag: "2a27bd0"
     pullPolicy: Always
 
 catalogService:
   image:
     repository: harbor-platform.apps.ocp01.npd.co/npd-shop/catalog-service
-    tag: "fd8a0d2"
+    tag: "2a27bd0"
     pullPolicy: Always
 
 orderService:
   image:
     repository: harbor-platform.apps.ocp01.npd.co/npd-shop/order-service
-    tag: "fd8a0d2"
+    tag: "2a27bd0"
     pullPolicy: Always
 
 paymentWorker:
   image:
     repository: harbor-platform.apps.ocp01.npd.co/npd-shop/payment-worker
-    tag: "fd8a0d2"
+    tag: "2a27bd0"
     pullPolicy: Always
 
 shopWeb:
