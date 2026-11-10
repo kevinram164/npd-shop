@@ -1,0 +1,21 @@
+# Root NOLI shop (dev-k8s):
+#   kubectl apply -f deploy/dev-k8s/argocd/appproject.yaml -f deploy/dev-k8s/argocd/app-of-apps.yaml
+# Yêu cầu: infra Healthy, Vault seed secret/npd-shop/*, harbor-pull-creds + kafka secrets trong npd-shop.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: npd-shop-root-dev-k8s
+  namespace: argocd
+spec:
+  project: npd-shop
+  source:
+    repoURL: https://github.com/kevinram164/npd-shop.git
+    targetRevision: main
+    path: deploy/dev-k8s/argocd/applications
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

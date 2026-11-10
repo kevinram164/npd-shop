@@ -1,0 +1,10 @@
+# Vault KV v2 secret/npd-shop/app {DATABASE_URL, JWT_SECRET, INTERNAL_TOKEN}
+# → role npd-shop-app (SA gateway/auth/catalog/order/payment) → /vault/secrets/env
+vault:
+  enabled: true
+  role: npd-shop-app
+  appPath: secret/data/npd-shop/app
+
+gateway:
+  env:
+    CORS_ORIGINS: "https://npd-shop.co,http://npd-shop.co"

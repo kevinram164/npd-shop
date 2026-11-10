@@ -1,0 +1,36 @@
+# Image tags — Harbor home cluster. Quote tags (hex có thể bị YAML parse thành float).
+gateway:
+  image:
+    repository: npd-harbor.co/npd-shop/gateway
+    tag: "2a27bd0"
+    pullPolicy: IfNotPresent
+
+authService:
+  image:
+    repository: npd-harbor.co/npd-shop/auth-service
+    tag: "2a27bd0"
+    pullPolicy: IfNotPresent
+
+catalogService:
+  image:
+    repository: npd-harbor.co/npd-shop/catalog-service
+    tag: "2a27bd0"
+    pullPolicy: IfNotPresent
+
+orderService:
+  image:
+    repository: npd-harbor.co/npd-shop/order-service
+    tag: "2a27bd0"
+    pullPolicy: IfNotPresent
+
+paymentWorker:
+  image:
+    repository: npd-harbor.co/npd-shop/payment-worker
+    tag: "2a27bd0"
+    pullPolicy: IfNotPresent
+
+shopWeb:
+  image:
+    repository: npd-harbor.co/npd-shop/shop-web
+    tag: "fd8a0d2"
+    pullPolicy: IfNotPresent

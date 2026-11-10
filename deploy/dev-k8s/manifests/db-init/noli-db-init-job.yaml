@@ -1,0 +1,74 @@
+# PreSync — đảm bảo DB/user `noli` trên postgres-ha dùng chung (idempotent).
+# Password từ Vault secret/npd-shop/noli-db (role npd-shop-db-init).
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: noli-db-init
+  namespace: postgres
+  annotations:
+    argocd.argoproj.io/hook: PreSync
+    argocd.argoproj.io/sync-wave: "-2"
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: noli-db-init
+  namespace: postgres
+  annotations:
+    argocd.argoproj.io/hook: PreSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    argocd.argoproj.io/sync-wave: "-1"
+  labels:
+    app.kubernetes.io/name: npd-shop
+    app.kubernetes.io/component: db-init
+spec:
+  ttlSecondsAfterFinished: 600
+  backoffLimit: 10
+  template:
+    metadata:
+      labels:
+        app: noli-db-init
+      annotations:
+        vault.hashicorp.com/agent-inject: "true"
+        vault.hashicorp.com/agent-pre-populate-only: "true"
+        vault.hashicorp.com/role: "npd-shop-db-init"
+        vault.hashicorp.com/agent-inject-secret-db-password: "secret/data/npd-shop/noli-db"
+        vault.hashicorp.com/agent-inject-template-db-password: |-
+          {{- with secret "secret/data/npd-shop/noli-db" -}}
+          {{- .Data.data.password -}}
+          {{- end -}}
+    spec:
+      serviceAccountName: noli-db-init
+      restartPolicy: OnFailure
+      containers:
+        - name: init
+          image: postgres:16-alpine
+          env:
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-ha-postgresql
+                  key: postgres-password
+            - name: PGHOST
+              value: postgres-ha-postgresql-primary.postgres.svc.cluster.local
+            - name: PGUSER
+              value: postgres
+          command:
+            - /bin/sh
+            - -ec
+            - |
+              NOLI_PW="$(cat /vault/secrets/db-password)"
+              psql -d postgres -tc "SELECT 1 FROM pg_roles WHERE rolname='noli'" | grep -q 1 || \
+                psql -d postgres -c "CREATE USER noli;"
+              echo "ALTER USER noli WITH LOGIN PASSWORD :'pw';" | psql -d postgres -v ON_ERROR_STOP=1 -v pw="$NOLI_PW"
+              psql -d postgres -tc "SELECT 1 FROM pg_database WHERE datname='noli'" | grep -q 1 || \
+                psql -d postgres -c "CREATE DATABASE noli OWNER noli;"
+              psql -d postgres -c "ALTER DATABASE noli OWNER TO noli;"
+              psql -d noli -c "GRANT ALL ON SCHEMA public TO noli;"
+              echo "noli DB init done"
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              memory: 128Mi

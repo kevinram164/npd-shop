@@ -1,0 +1,24 @@
+# AppProject npd-shop — NOLI shop trên dev-k8s (ns npd-shop).
+# postgres: chỉ Job noli-db-init (tạo DB/user noli trên postgres-ha dùng chung).
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: npd-shop
+  namespace: argocd
+spec:
+  description: NOLI shop (dev-k8s)
+  sourceRepos:
+    - https://github.com/kevinram164/npd-shop.git
+  destinations:
+    - server: https://kubernetes.default.svc
+      namespace: npd-shop
+    - server: https://kubernetes.default.svc
+      namespace: postgres
+    - server: https://kubernetes.default.svc
+      namespace: argocd
+  clusterResourceWhitelist:
+    - group: ""
+      kind: Namespace
+  namespaceResourceWhitelist:
+    - group: "*"
+      kind: "*"

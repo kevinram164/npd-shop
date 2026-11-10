@@ -1,0 +1,60 @@
+# OTEL → opentelemetry-collector.observability (dev-k8s)
+gateway:
+  env:
+    OTEL_EXPORTER_OTLP_ENDPOINT: "http://opentelemetry-collector.observability.svc.cluster.local:4317"
+    OTEL_EXPORTER_OTLP_PROTOCOL: "grpc"
+    OTEL_SERVICE_NAME: "noli-shop-gateway"
+    OTEL_RESOURCE_ATTRIBUTES: "deployment.environment=dev-k8s,k8s.namespace.name=npd-shop,k8s.cluster.name=npd-k8s"
+    OTEL_HEARTBEAT: "1"
+    OTEL_HEARTBEAT_SECONDS: "3600"
+    SILENCE_PROBE_ACCESS_LOGS: "true"
+    UVICORN_ACCESS_LOG: "off"
+    LOG_BUSINESS_JSON: "true"
+
+authService:
+  env:
+    OTEL_EXPORTER_OTLP_ENDPOINT: "http://opentelemetry-collector.observability.svc.cluster.local:4317"
+    OTEL_EXPORTER_OTLP_PROTOCOL: "grpc"
+    OTEL_SERVICE_NAME: "noli-auth-service"
+    OTEL_RESOURCE_ATTRIBUTES: "deployment.environment=dev-k8s,k8s.namespace.name=npd-shop,k8s.cluster.name=npd-k8s"
+    OTEL_HEARTBEAT: "1"
+    OTEL_HEARTBEAT_SECONDS: "3600"
+    SILENCE_PROBE_ACCESS_LOGS: "true"
+    UVICORN_ACCESS_LOG: "off"
+    LOG_BUSINESS_JSON: "true"
+
+catalogService:
+  env:
+    OTEL_EXPORTER_OTLP_ENDPOINT: "http://opentelemetry-collector.observability.svc.cluster.local:4317"
+    OTEL_EXPORTER_OTLP_PROTOCOL: "grpc"
+    OTEL_SERVICE_NAME: "noli-catalog-service"
+    OTEL_RESOURCE_ATTRIBUTES: "deployment.environment=dev-k8s,k8s.namespace.name=npd-shop,k8s.cluster.name=npd-k8s"
+    OTEL_HEARTBEAT: "1"
+    OTEL_HEARTBEAT_SECONDS: "3600"
+    SILENCE_PROBE_ACCESS_LOGS: "true"
+    UVICORN_ACCESS_LOG: "off"
+    LOG_BUSINESS_JSON: "true"
+
+orderService:
+  env:
+    OTEL_EXPORTER_OTLP_ENDPOINT: "http://opentelemetry-collector.observability.svc.cluster.local:4317"
+    OTEL_EXPORTER_OTLP_PROTOCOL: "grpc"
+    OTEL_SERVICE_NAME: "noli-order-service"
+    OTEL_RESOURCE_ATTRIBUTES: "deployment.environment=dev-k8s,k8s.namespace.name=npd-shop,k8s.cluster.name=npd-k8s"
+    OTEL_HEARTBEAT: "1"
+    OTEL_HEARTBEAT_SECONDS: "3600"
+    SILENCE_PROBE_ACCESS_LOGS: "true"
+    UVICORN_ACCESS_LOG: "off"
+    LOG_BUSINESS_JSON: "true"
+
+paymentWorker:
+  env:
+    OTEL_EXPORTER_OTLP_ENDPOINT: "http://opentelemetry-collector.observability.svc.cluster.local:4317"
+    OTEL_EXPORTER_OTLP_PROTOCOL: "grpc"
+    OTEL_SERVICE_NAME: "noli-payment-worker"
+    OTEL_RESOURCE_ATTRIBUTES: "deployment.environment=dev-k8s,k8s.namespace.name=npd-shop,k8s.cluster.name=npd-k8s"
+    OTEL_HEARTBEAT: "1"
+    OTEL_HEARTBEAT_SECONDS: "3600"
+    SILENCE_PROBE_ACCESS_LOGS: "true"
+    UVICORN_ACCESS_LOG: "off"
+    LOG_BUSINESS_JSON: "true"

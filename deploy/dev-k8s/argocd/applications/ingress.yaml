@@ -1,0 +1,24 @@
+# https://npd-shop.co → f5-lb → HAProxy → shop-web:8080
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: npd-shop-ingress
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: npd-shop
+    app.kubernetes.io/component: ingress
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  project: npd-shop
+  source:
+    repoURL: https://github.com/kevinram164/npd-shop.git
+    targetRevision: main
+    path: deploy/dev-k8s/manifests/ingress
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: npd-shop
+  syncPolicy:
+    automated:
+      prune: false
+      selfHeal: true

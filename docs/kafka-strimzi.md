@@ -1,6 +1,6 @@
 # Shared Strimzi Kafka (platform infra)
 
-**Deploy:** `banking-demo/phase9-gitops-platform/kafka/DEPLOY.md`
+**Deploy:** `cloud-native-platform/phase9-gitops-platform/kafka/DEPLOY.md`
 
 | Listener | Port | Auth |
 |----------|------|------|
@@ -42,6 +42,7 @@ oc -n npd-shop get deploy order-service -o yaml | grep -E 'KAFKA_|kafka'
 ```bash
 # từ repo banking-demo
 bash phase9-gitops-platform/environments/dev-ocp/scripts/sync-kafka-client-secrets.sh
+# chạy từ repo cloud-native-platform
 ```
 
 3. Build/push `shop-bridge` → sync Argo `banking-shop-bridge`  

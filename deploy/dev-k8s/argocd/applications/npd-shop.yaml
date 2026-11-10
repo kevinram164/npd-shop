@@ -1,0 +1,35 @@
+# Helm charts/shop — secret qua Vault Agent Injector (dev-k8s).
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: npd-shop
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: npd-shop
+    app.kubernetes.io/component: app
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  project: npd-shop
+  source:
+    repoURL: https://github.com/kevinram164/npd-shop.git
+    targetRevision: main
+    path: charts/shop
+    helm:
+      releaseName: npd-shop
+      valueFiles:
+        - values.yaml
+        - ../../deploy/dev-k8s/values/values-dev-k8s.yaml
+        - ../../deploy/dev-k8s/values/values-images.yaml
+        - ../../deploy/dev-k8s/values/values-observability.yaml
+        - ../../deploy/dev-k8s/values/values-kafka.yaml
+        - ../../deploy/dev-k8s/values/values-merchant.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: npd-shop
+  syncPolicy:
+    automated:
+      prune: false
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

@@ -3,8 +3,35 @@ app.kubernetes.io/name: npd-shop
 app.kubernetes.io/part-of: npd-shop
 {{- end }}
 
+{{/*
+Vault Agent Injector → /vault/secrets/env (export KEY='value').
+Usage: include "shop.vault.podAnnotations" $
+*/}}
+{{- define "shop.vault.podAnnotations" -}}
+{{- $v := .Values.vault -}}
+vault.hashicorp.com/agent-inject: "true"
+vault.hashicorp.com/agent-init-first: "true"
+vault.hashicorp.com/agent-pre-populate-only: "true"
+vault.hashicorp.com/role: {{ $v.role | quote }}
+vault.hashicorp.com/agent-inject-secret-env: {{ $v.appPath | quote }}
+vault.hashicorp.com/agent-inject-template-env: |
+  {{`{{ with secret "`}}{{ $v.appPath }}{{`" }}`}}
+  {{- range $v.secretKeys }}
+  export {{ . }}='{{`{{ .Data.data.`}}{{ . }}{{` }}`}}'
+  {{- end }}
+  {{`{{ end }}`}}
+{{- end -}}
+
+{{/* Source Vault env then start uvicorn. Usage: include "shop.vault.containerCommand" (dict "port" 8080) */}}
+{{- define "shop.vault.containerCommand" -}}
+command: ["/bin/sh", "-c"]
+args:
+  - . /vault/secrets/env && exec /app/venv/bin/python -m uvicorn main:app --host 0.0.0.0 --port {{ .port }} --no-access-log
+{{- end -}}
+
 {{- define "shop.secretEnv" -}}
-{{- if $.Values.appSecretName }}
+{{- /* App secrets: K8s Secret (OCP/ESO) hoặc Vault Agent (dev-k8s) */ -}}
+{{- if and $.Values.appSecretName (not $.Values.vault.enabled) }}
 - name: DATABASE_URL
   valueFrom:
     secretKeyRef:

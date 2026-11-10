@@ -4,7 +4,17 @@ imagePullSecrets:
   - name: harbor-pull-creds
 
 # Secret keys: DATABASE_URL, JWT_SECRET, INTERNAL_TOKEN (optional ADMIN_PASSWORD)
+# OCP: ESO → Secret appSecretName. dev-k8s: vault.enabled=true (Agent Injector, bỏ secretKeyRef).
 appSecretName: npd-shop-secrets
+
+vault:
+  enabled: false
+  role: npd-shop-app
+  appPath: secret/data/npd-shop/app
+  secretKeys:
+    - DATABASE_URL
+    - JWT_SECRET
+    - INTERNAL_TOKEN
 
 # Shared Strimzi (platform ns kafka) — bật qua gitops/values-kafka.yaml
 kafka:
