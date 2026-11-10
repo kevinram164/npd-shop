@@ -42,6 +42,7 @@ spec:
           securityContext:
             allowPrivilegeEscalation: false
             runAsNonRoot: true
+            runAsUser: 101
             capabilities: { drop: ["ALL"] }
 ---
 apiVersion: v1

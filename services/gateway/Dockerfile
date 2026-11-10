@@ -27,7 +27,11 @@ WORKDIR /app
 COPY --from=builder /app/venv /app/venv
 COPY common ./common
 COPY gateway/main.py ./main.py
-RUN chmod -R a+rX /app && test -x /app/venv/bin/uvicorn
+RUN chmod -R a+rX /app && test -x /app/venv/bin/uvicorn \
+    && useradd --create-home --uid 1000 --shell /usr/sbin/nologin appuser \
+    && chown -R appuser:appuser /app
+
+USER 1000
 
 EXPOSE 8080
 CMD ["/bin/sh", "-c", "echo '[noli-gateway] starting on 8080' >&2; exec /app/venv/bin/python -m uvicorn main:app --host 0.0.0.0 --port 8080 --no-access-log"]

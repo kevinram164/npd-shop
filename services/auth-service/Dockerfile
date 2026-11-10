@@ -27,7 +27,11 @@ WORKDIR /app
 COPY --from=builder /app/venv /app/venv
 COPY common ./common
 COPY auth-service/main.py ./main.py
-RUN chmod -R a+rX /app && test -x /app/venv/bin/uvicorn
+RUN chmod -R a+rX /app && test -x /app/venv/bin/uvicorn \
+    && useradd --create-home --uid 1000 --shell /usr/sbin/nologin appuser \
+    && chown -R appuser:appuser /app
+
+USER 1000
 
 EXPOSE 8001
 CMD ["/bin/sh", "-c", "echo '[noli-auth] starting on 8001' >&2; exec /app/venv/bin/python -m uvicorn main:app --host 0.0.0.0 --port 8001 --no-access-log"]
